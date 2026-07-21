@@ -1,0 +1,6 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="36" height="36" rx="8" fill="#1D9E75"/>
+  <!-- Aktivitäts-Icon -->
+  <polyline points="6,18 10,18 13,10 16,26 20,14 23,20 26,20 30,18"
+    stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
