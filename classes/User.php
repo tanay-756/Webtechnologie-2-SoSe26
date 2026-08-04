@@ -4,36 +4,38 @@ require_once __DIR__ . '/../config/db.php';
 
 // Klasse für alle Nutzer-bezogenen Operationen
 class User {
-    private $db; // Datenbankverbindung
+    private $db;
 
-    // Konstruktor: DB-Verbindung herstellen
     public function __construct() {
         $this->db = getDB();
     }
 
     // Neuen Nutzer registrieren
     public function register($username, $email, $password) {
-        $hash = password_hash($password, PASSWORD_BCRYPT); // Passwort hashen
+        $hash = password_hash($password, PASSWORD_BCRYPT);
         $stmt = $this->db->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $username, $email, $hash); // Parameter binden
-        return $stmt->execute();
+        $stmt->bind_param("sss", $username, $email, $hash);
+        try {
+            return $stmt->execute(); // Fehler abfangen
+        } catch (mysqli_sql_exception $e) {
+            return false; // Duplicate entry → false zurückgeben
+        }
     }
 
-    // Nutzer einloggen – gibt Nutzerdaten zurück oder false
+    // Nutzer einloggen
     public function login($email, $password) {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
 
-        // Passwort prüfen
         if ($result && password_verify($password, $result['password_hash'])) {
-            return $result; // Login erfolgreich
+            return $result;
         }
-        return false; // Login fehlgeschlagen
+        return false;
     }
 
-    // Profil eines Nutzers abrufen (ohne Passwort-Hash)
+    // Profil abrufen
     public function getProfile($user_id) {
         $stmt = $this->db->prepare("SELECT id, username, email, weight_kg, height_cm, created_at FROM users WHERE id = ?");
         $stmt->bind_param("i", $user_id);
@@ -48,4 +50,3 @@ class User {
         return $stmt->execute();
     }
 }
-?>

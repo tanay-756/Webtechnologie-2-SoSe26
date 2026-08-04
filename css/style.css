@@ -108,3 +108,14 @@ input:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12)
 /* Registrierungslink */
 .register { text-align: center; font-size: 13px; color: #666; }
 .register a { color: #1D9E75; text-decoration: none; font-weight: 500; }
+
+/* Erfolgsmeldung */
+.success {
+    display: none;
+    font-size: 13px;
+    color: #166534;
+    background: #f0fdf4;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 1rem;
+}
