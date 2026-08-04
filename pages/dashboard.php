@@ -1,7 +1,5 @@
 <?php
 session_start();
-
-// Nicht eingeloggt → zurück zum Login
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
@@ -11,16 +9,22 @@ if (!isset($_SESSION['user_id'])) {
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard – Fitness Tracker</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body>
 <div class="page">
   <div class="card">
+
+    <?php include '../includes/nav.php'; ?>
+
     <h1>Willkommen, <?php echo htmlspecialchars($_SESSION['username']); ?>! 👋</h1>
-    <p class="subtitle">Du bist eingeloggt.</p>
-    <a href="login.php"><button class="btn">Ausloggen</button></a>
+    <p class="subtitle">Hier siehst du deine letzten Workouts und Ziele.</p>
+
   </div>
 </div>
+<script src="../js/main.js"></script>
 </body>
 </html>

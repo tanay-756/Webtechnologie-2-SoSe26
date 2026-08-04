@@ -12,8 +12,8 @@
 </head>
 <body>
 
-<div class="page">
-  <div class="card">
+<div class="page-centered">
+  <div class="card-small">
 
     <!-- Logo -->
     <div class="logo">

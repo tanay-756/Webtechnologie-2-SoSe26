@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body>
-<div class="page">
-  <div class="card">
+<div class="page-centered">
+  <div class="card-small">
     <div class="logo">
       <?php include '../assets/logo.svg'; ?>
       <span class="logo-text">Fitness Tracker</span>

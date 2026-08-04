@@ -20,7 +20,7 @@ async function handleLogin() {
     const data = await res.json();
 
     if (data.success) {
-        window.location.href = 'dashboard.php';
+        window.location.href = 'profile.php'; // nach Login → Profil
     } else {
         showError(error, data.message);
     }
@@ -54,6 +54,47 @@ async function handleRegister() {
         setTimeout(() => window.location.href = 'login.php', 1500);
     } else {
         showError(error, data.message);
+    }
+}
+
+// Profil speichern
+async function saveProfile() {
+    const weight  = document.getElementById('weight').value;
+    const height  = document.getElementById('height').value;
+    const error   = document.getElementById('error');
+    const success = document.getElementById('success');
+
+    // Pflichtfelder prüfen
+    if (!weight || !height) {
+        showError(error, 'Bitte Gewicht und Größe eingeben.');
+        return;
+    }
+
+    // API-Anfrage
+    const res  = await fetch('/Webtechnologie-2-SoSe26/api/profile.php', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ weight_kg: weight, height_cm: height })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        showSuccess(success, 'Profil gespeichert!');
+    } else {
+        showError(error, data.message);
+    }
+}
+
+// BMI berechnen
+function calcBMI() {
+    const w  = parseFloat(document.getElementById('weight').value);
+    const h  = parseFloat(document.getElementById('height').value) / 100;
+    const el = document.getElementById('bmi');
+    if (w > 0 && h > 0) {
+        el.textContent = (w / (h * h)).toFixed(1);
+    } else {
+        el.textContent = '—';
     }
 }
 

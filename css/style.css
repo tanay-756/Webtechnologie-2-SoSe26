@@ -7,17 +7,27 @@ body {
     color: #1a1a1a;
 }
 
-/* Zentrierte Seite */
+/* Hauptlayout – volle Breite mit max-width */
 .page {
     min-height: 100vh;
     display: flex;
-    align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
-/* Login-Karte */
+/* Große Karte für Laptop */
 .card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 14px;
+    padding: 2rem 3rem;
+    width: 100%;
+    max-width: 1500px;
+    align-self: flex-start;
+}
+
+/* Kleine Karte für Login/Register */
+.card-small {
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 12px;
@@ -26,31 +36,95 @@ body {
     max-width: 380px;
 }
 
-/* Logo-Bereich */
-.logo {
+/* Zentriert für Login/Register */
+.page-centered {
+    min-height: 100vh;
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 2rem;
+    justify-content: center;
+    padding: 2rem;
+    background: #f5f5f5;
 }
 
-.logo svg { width: 36px; height: 36px; } /* Logo-Größe */
+/* Navigation */
+.profile-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    white-space: nowrap;
+}
 
-.logo-text {
-    font-size: 16px;
+.profile-nav a {
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.profile-nav a:hover { background: #f5f5f5; color: #333; }
+
+.profile-nav a.active {
+    background: #E1F5EE;
+    color: #085041;
     font-weight: 500;
 }
 
-/* Überschrift */
-h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
-.subtitle { font-size: 14px; color: #666; margin-bottom: 2rem; }
+.profile-nav .nav-logout {
+    margin-left: auto;
+    color: #999;
+}
+
+/* Avatar */
+.avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #E1F5EE;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 17px;
+    color: #085041;
+    margin-bottom: 1rem;
+}
+
+/* Überschriften */
+h1 { font-size: 22px; font-weight: 500; margin-bottom: 0.25rem; }
+.subtitle { font-size: 14px; color: #888; margin-bottom: 2rem; }
+
+/* Abschnitts-Label */
+.section-label {
+    font-size: 11px;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+}
 
 /* Fehlermeldung */
 .error {
-    display: none; /* standardmäßig versteckt */
+    display: none;
     font-size: 13px;
     color: #b91c1c;
     background: #fef2f2;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 1rem;
+}
+
+/* Erfolgsmeldung */
+.success {
+    display: none;
+    font-size: 13px;
+    color: #166534;
+    background: #f0fdf4;
     border-radius: 8px;
     padding: 10px 12px;
     margin-bottom: 1rem;
@@ -65,36 +139,79 @@ input {
     width: 100%;
     padding: 0 12px;
     height: 38px;
-    border: 1px solid #ddd;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.15s;
+    background: #fff;
+    color: #1a1a1a;
 }
 
 input:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+input:disabled { background: #fafafa; color: #999; }
 
-/* Passwort vergessen */
-.forgot { text-align: right; margin-top: -0.75rem; margin-bottom: 1.25rem; }
-.forgot a { font-size: 13px; color: #1D9E75; text-decoration: none; }
+/* Grid-Layouts */
+.grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 400px;
+}
 
-/* Button */
+.grid-four {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    max-width: 800px;
+}
+
+/* BMI-Karte */
+.bmi-card {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 220px;
+}
+
+.bmi-label { font-size: 13px; color: #666; }
+.bmi-value { font-size: 20px; font-weight: 500; color: #1D9E75; margin-left: auto; }
+
+/* Buttons */
 .btn {
-    width: 100%;
+    padding: 0 24px;
     height: 40px;
-    background: #1D9E75; /* Hauptfarbe */
+    background: #1D9E75;
     color: #fff;
     border: none;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
+    margin-top: 1.5rem;
     transition: background 0.15s;
 }
 
 .btn:hover { background: #0F6E56; }
 
-/* Trennlinie */
+/* Login-spezifisch */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.logo svg { width: 36px; height: 36px; }
+.logo-text { font-size: 16px; font-weight: 500; }
+
+.forgot { text-align: right; margin-top: -0.75rem; margin-bottom: 1.25rem; }
+.forgot a { font-size: 13px; color: #1D9E75; text-decoration: none; }
+
 .divider {
     display: flex;
     align-items: center;
@@ -105,17 +222,5 @@ input:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12)
 .divider span { font-size: 12px; color: #aaa; white-space: nowrap; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
 
-/* Registrierungslink */
 .register { text-align: center; font-size: 13px; color: #666; }
 .register a { color: #1D9E75; text-decoration: none; font-weight: 500; }
-
-/* Erfolgsmeldung */
-.success {
-    display: none;
-    font-size: 13px;
-    color: #166534;
-    background: #f0fdf4;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 1rem;
-}
