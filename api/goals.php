@@ -163,8 +163,7 @@ try {
 
             echo json_encode([
                 'success' => false,
-                'message' =>
-                    'Ziel wurde nicht gefunden oder nicht verändert.'
+                'message' => 'Ziel wurde nicht gefunden.'
             ]);
             exit;
         }
