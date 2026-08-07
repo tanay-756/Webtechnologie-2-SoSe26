@@ -102,6 +102,20 @@ class Goal
 
         $stmt->execute();
 
-        return $stmt->affected_rows > 0;
+        if ($stmt->affected_rows > 0) {
+            return true;
+        }
+
+        $existsSql = '
+            SELECT 1
+            FROM goals
+            WHERE id = ? AND user_id = ?
+        ';
+
+        $existsStmt = $this->db->prepare($existsSql);
+        $existsStmt->bind_param('ii', $goalId, $userId);
+        $existsStmt->execute();
+
+        return $existsStmt->get_result()->num_rows > 0;
     }
 }
