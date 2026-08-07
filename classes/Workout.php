@@ -72,6 +72,52 @@ class Workout
         return array_values($workouts);
     }
 
+    public function getSummaryByUser($userId)
+    {
+        $sql = '
+            SELECT
+                COUNT(*) AS total_workouts,
+                COALESCE(SUM(duration_minutes), 0)
+                    AS total_training_minutes
+            FROM workouts
+            WHERE user_id = ?
+        ';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+
+        $summary = $stmt->get_result()->fetch_assoc();
+
+        return [
+            'total_workouts' =>
+                (int) $summary['total_workouts'],
+            'total_training_minutes' =>
+                (int) $summary['total_training_minutes']
+        ];
+    }
+
+    public function getRecentByUser($userId)
+    {
+        $sql = '
+            SELECT
+                id,
+                title,
+                date,
+                duration_minutes
+            FROM workouts
+            WHERE user_id = ?
+            ORDER BY date DESC, id DESC
+            LIMIT 5
+        ';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
     public function create(
         $userId,
         $title,

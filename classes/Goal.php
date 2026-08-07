@@ -40,6 +40,34 @@ class Goal
         );
     }
 
+    public function getActiveByUser($userId)
+    {
+        $sql = '
+            SELECT
+                id,
+                description,
+                target_value,
+                current_value,
+                unit,
+                deadline,
+                status
+            FROM goals
+            WHERE user_id = ? AND status = "aktiv"
+            ORDER BY
+                deadline IS NULL,
+                deadline ASC,
+                id DESC
+        ';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(
+            MYSQLI_ASSOC
+        );
+    }
+
     public function create(
         $userId,
         $description,
