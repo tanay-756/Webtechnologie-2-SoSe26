@@ -77,57 +77,78 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
 
-        <p class="section-label">Übung</p>
+        <p class="section-label">Übungen</p>
 
-        <div class="field">
-            <label for="workout-exercise">
-                Übung auswählen
-            </label>
+        <div
+            class="workout-exercises"
+            id="workout-exercises"
+        ></div>
 
-            <select id="workout-exercise">
-                <option value="">Übung auswählen</option>
-            </select>
-        </div>
+        <button
+            type="button"
+            class="workout-add-exercise-button"
+            id="add-workout-exercise"
+        >
+            Weitere Übung hinzufügen
+        </button>
 
-        <div class="grid-two">
-            <div class="field">
-                <label for="workout-sets">Sätze</label>
+        <template id="workout-exercise-template">
+            <div class="workout-exercise-block">
+                <div class="workout-exercise-header">
+                    <p class="workout-exercise-title"></p>
 
-                <input
-                    type="number"
-                    id="workout-sets"
-                    min="0"
-                    placeholder="z. B. 3"
-                >
+                    <button
+                        type="button"
+                        class="workout-remove-exercise-button"
+                    >
+                        Entfernen
+                    </button>
+                </div>
+
+                <div class="workout-exercise-fields">
+                    <label class="field">
+                        <span>Übung auswählen</span>
+
+                        <select class="workout-exercise-select">
+                        </select>
+                    </label>
+
+                    <label class="field">
+                        <span>Sätze</span>
+
+                        <input
+                            type="number"
+                            class="workout-exercise-sets"
+                            min="0"
+                            placeholder="z. B. 3"
+                        >
+                    </label>
+
+                    <label class="field">
+                        <span>Wiederholungen</span>
+
+                        <input
+                            type="number"
+                            class="workout-exercise-reps"
+                            min="0"
+                            placeholder="z. B. 10"
+                        >
+                    </label>
+
+                    <label class="field">
+                        <span>Gewicht in kg</span>
+
+                        <input
+                            type="number"
+                            class="workout-exercise-weight"
+                            min="0"
+                            step="0.1"
+                            placeholder="z. B. 40"
+                        >
+                    </label>
+                </div>
             </div>
-
-            <div class="field">
-                <label for="workout-reps">
-                    Wiederholungen
-                </label>
-
-                <input
-                    type="number"
-                    id="workout-reps"
-                    min="0"
-                    placeholder="z. B. 10"
-                >
-            </div>
-        </div>
-
-        <div class="field">
-            <label for="workout-weight">
-                Gewicht in kg
-            </label>
-
-            <input
-                type="number"
-                id="workout-weight"
-                min="0"
-                step="0.1"
-                placeholder="z. B. 40"
-            >
-        </div>
+        </template>
 
         <div class="field">
             <label for="workout-notes">Notizen</label>
