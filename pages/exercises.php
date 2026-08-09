@@ -66,9 +66,24 @@ if (!isset($_SESSION['user_id'])) {
             ></textarea>
         </div>
 
-        <button class="btn" id="save-exercise">
-            Übung speichern
-        </button>
+        <div class="exercise-form-actions">
+            <button
+                type="button"
+                class="btn"
+                id="save-exercise"
+            >
+                Übung speichern
+            </button>
+
+            <button
+                type="button"
+                class="exercise-cancel-button"
+                id="cancel-exercise-edit"
+                hidden
+            >
+                Abbrechen
+            </button>
+        </div>
 
         <p class="section-label">Vorhandene Übungen</p>
 
