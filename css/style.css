@@ -357,6 +357,100 @@ input:disabled { background: #fafafa; color: #999; }
 }
 
 /* Workout-Aktionen */
+.workout-exercises {
+    display: grid;
+    gap: 16px;
+    max-width: 900px;
+}
+
+.workout-exercise-block {
+    padding: 16px;
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+}
+
+.workout-exercise-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.workout-exercise-title {
+    color: #555;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.workout-exercise-fields {
+    display: grid;
+    grid-template-columns: minmax(180px, 2fr) repeat(3, minmax(100px, 1fr));
+    gap: 16px;
+}
+
+.workout-exercise-fields .field {
+    margin-bottom: 0;
+}
+
+.workout-exercise-fields label span {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.workout-exercise-select {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    color: #1a1a1a;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.workout-exercise-select:focus {
+    border-color: #1D9E75;
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
+    outline: none;
+}
+
+.workout-add-exercise-button,
+.workout-remove-exercise-button {
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.workout-add-exercise-button {
+    margin-top: 12px;
+    padding: 8px 14px;
+    color: #085041;
+    background: #E1F5EE;
+    border: 1px solid #b7e4d5;
+}
+
+.workout-add-exercise-button:hover {
+    background: #c9eee1;
+}
+
+.workout-remove-exercise-button {
+    padding: 6px 10px;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.workout-remove-exercise-button:hover:not(:disabled) {
+    background: #fee2e2;
+}
+
+.workout-remove-exercise-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
 .workout-form-actions,
 .workout-actions {
     display: flex;
@@ -406,4 +500,16 @@ input:disabled { background: #fafafa; color: #999; }
 
 .workout-delete-button:hover {
     background: #fee2e2;
+}
+
+@media (max-width: 760px) {
+    .workout-exercise-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .workout-exercise-fields {
+        grid-template-columns: 1fr;
+    }
 }

@@ -6,48 +6,42 @@ const exercisesApiUrl =
 
 let editingWorkoutId = null;
 let defaultWorkoutDate = '';
+let exerciseCatalog = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     const saveButton = document.getElementById('save-workout');
     const cancelButton =
         document.getElementById('cancel-workout-edit');
+    const addExerciseButton =
+        document.getElementById('add-workout-exercise');
 
     defaultWorkoutDate =
         document.getElementById('workout-date').value;
 
     saveButton.addEventListener('click', saveWorkout);
     cancelButton.addEventListener('click', cancelWorkoutEdit);
+    addExerciseButton.addEventListener('click', () => {
+        addWorkoutExerciseBlock();
+    });
 
+    addWorkoutExerciseBlock();
     await loadExercises();
     await loadWorkouts();
 });
 
 async function loadExercises() {
-    const select = document.getElementById('workout-exercise');
     const error = document.getElementById('workout-error');
 
     try {
         const data = await apiRequest(exercisesApiUrl);
 
-        select.replaceChildren();
+        exerciseCatalog = Array.isArray(data.exercises)
+            ? data.exercises
+            : [];
 
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Übung auswählen';
+        updateWorkoutExerciseSelects();
 
-        select.appendChild(defaultOption);
-
-        data.exercises.forEach((exercise) => {
-            const option = document.createElement('option');
-
-            option.value = exercise.id;
-            option.textContent =
-                `${exercise.name} (${exercise.category})`;
-
-            select.appendChild(option);
-        });
-
-        if (data.exercises.length === 0) {
+        if (exerciseCatalog.length === 0) {
             showWorkoutMessage(
                 error,
                 'Lege zuerst mindestens eine Übung an.'
@@ -87,22 +81,21 @@ async function saveWorkout() {
         date: fields.date.value,
         duration_minutes:
             Number(fields.duration.value) || 0,
-        exercise_id:
-            Number(fields.exercise.value) || 0,
-        sets: Number(fields.sets.value) || 0,
-        reps: Number(fields.reps.value) || 0,
-        weight_kg: Number(fields.weight.value) || 0,
+        exercises: getWorkoutExercisesFromForm(),
         notes: fields.notes.value.trim()
     };
 
     if (
         workoutData.title === '' ||
         workoutData.date === '' ||
-        workoutData.exercise_id === 0
+        workoutData.exercises.length === 0 ||
+        workoutData.exercises.some(
+            (exercise) => exercise.exercise_id === 0
+        )
     ) {
         showWorkoutMessage(
             error,
-            'Bitte Titel, Datum und Übung ausfüllen.'
+            'Bitte Titel, Datum und jede Übung ausfüllen.'
         );
         return;
     }
@@ -207,9 +200,6 @@ function renderWorkouts(workouts) {
 
 function startWorkoutEdit(workout) {
     const fields = getWorkoutFormFields();
-    const exercise = Array.isArray(workout.exercises)
-        ? workout.exercises[0]
-        : null;
 
     editingWorkoutId = Number(workout.id);
 
@@ -217,10 +207,8 @@ function startWorkoutEdit(workout) {
     fields.date.value = workout.date || defaultWorkoutDate;
     fields.duration.value = workout.duration_minutes ?? '';
     fields.notes.value = workout.notes || '';
-    fields.exercise.value = exercise ? String(exercise.id) : '';
-    fields.sets.value = exercise?.sets ?? '';
-    fields.reps.value = exercise?.reps ?? '';
-    fields.weight.value = exercise?.weight_kg ?? '';
+
+    setWorkoutExerciseBlocks(workout.exercises);
 
     document.getElementById('save-workout').textContent =
         'Änderungen speichern';
@@ -279,11 +267,9 @@ function resetWorkoutForm() {
     fields.title.value = '';
     fields.date.value = defaultWorkoutDate;
     fields.duration.value = '';
-    fields.exercise.value = '';
-    fields.sets.value = '';
-    fields.reps.value = '';
-    fields.weight.value = '';
     fields.notes.value = '';
+
+    setWorkoutExerciseBlocks([]);
 
     document.getElementById('save-workout').textContent =
         'Workout speichern';
@@ -295,12 +281,123 @@ function getWorkoutFormFields() {
         title: document.getElementById('workout-title'),
         date: document.getElementById('workout-date'),
         duration: document.getElementById('workout-duration'),
-        exercise: document.getElementById('workout-exercise'),
-        sets: document.getElementById('workout-sets'),
-        reps: document.getElementById('workout-reps'),
-        weight: document.getElementById('workout-weight'),
         notes: document.getElementById('workout-notes')
     };
+}
+
+function addWorkoutExerciseBlock(exercise = null) {
+    const container = document.getElementById('workout-exercises');
+    const template = document.getElementById(
+        'workout-exercise-template'
+    );
+    const block = template.content.firstElementChild.cloneNode(true);
+    const select = block.querySelector('.workout-exercise-select');
+    const exerciseId = exercise?.id ?? exercise?.exercise_id ?? '';
+
+    populateWorkoutExerciseSelect(select, exerciseId);
+
+    block.querySelector('.workout-exercise-sets').value =
+        exercise?.sets ?? '';
+    block.querySelector('.workout-exercise-reps').value =
+        exercise?.reps ?? '';
+    block.querySelector('.workout-exercise-weight').value =
+        exercise?.weight_kg ?? '';
+
+    block
+        .querySelector('.workout-remove-exercise-button')
+        .addEventListener('click', () => {
+            if (container.children.length <= 1) {
+                return;
+            }
+
+            block.remove();
+            updateWorkoutExerciseBlocks();
+        });
+
+    container.appendChild(block);
+    updateWorkoutExerciseBlocks();
+}
+
+function setWorkoutExerciseBlocks(exercises) {
+    const container = document.getElementById('workout-exercises');
+    const workoutExercises =
+        Array.isArray(exercises) && exercises.length > 0
+            ? exercises
+            : [null];
+
+    container.replaceChildren();
+
+    workoutExercises.forEach((exercise) => {
+        addWorkoutExerciseBlock(exercise);
+    });
+}
+
+function updateWorkoutExerciseBlocks() {
+    const blocks = document.querySelectorAll(
+        '.workout-exercise-block'
+    );
+    const hasSingleBlock = blocks.length === 1;
+
+    blocks.forEach((block, index) => {
+        block.querySelector('.workout-exercise-title').textContent =
+            `Übung ${index + 1}`;
+        block.querySelector(
+            '.workout-remove-exercise-button'
+        ).disabled = hasSingleBlock;
+    });
+}
+
+function updateWorkoutExerciseSelects() {
+    document
+        .querySelectorAll('.workout-exercise-select')
+        .forEach((select) => {
+            populateWorkoutExerciseSelect(select, select.value);
+        });
+}
+
+function populateWorkoutExerciseSelect(select, selectedExerciseId) {
+    select.replaceChildren();
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Übung auswählen';
+
+    select.appendChild(defaultOption);
+
+    exerciseCatalog.forEach((exercise) => {
+        const option = document.createElement('option');
+
+        option.value = exercise.id;
+        option.textContent =
+            `${exercise.name} (${exercise.category})`;
+
+        select.appendChild(option);
+    });
+
+    select.value = String(selectedExerciseId);
+}
+
+function getWorkoutExercisesFromForm() {
+    return Array.from(
+        document.querySelectorAll('.workout-exercise-block')
+    ).map((block) => ({
+        exercise_id:
+            Number(
+                block.querySelector('.workout-exercise-select').value
+            ) || 0,
+        sets:
+            Number(
+                block.querySelector('.workout-exercise-sets').value
+            ) || 0,
+        reps:
+            Number(
+                block.querySelector('.workout-exercise-reps').value
+            ) || 0,
+        weight_kg:
+            Number(
+                block.querySelector('.workout-exercise-weight').value
+            ) || 0
+    }));
 }
 
 function formatWorkoutDate(date) {

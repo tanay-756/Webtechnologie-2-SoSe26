@@ -32,7 +32,7 @@ class Workout
             LEFT JOIN exercises e
                 ON e.id = we.exercise_id
             WHERE w.user_id = ?
-            ORDER BY w.date DESC, w.id DESC
+            ORDER BY w.date DESC, w.id DESC, we.id ASC
         ';
 
         $stmt = $this->db->prepare($sql);
@@ -124,15 +124,12 @@ class Workout
         $date,
         $durationMinutes,
         $notes,
-        $exerciseId,
-        $sets,
-        $reps,
-        $weightKg
+        $exercises
     ) {
         $this->db->begin_transaction();
 
         try {
-            $this->ensureExerciseExists($exerciseId);
+            $this->ensureExercisesExist($exercises);
 
             $workoutSql = '
                 INSERT INTO workouts
@@ -154,24 +151,7 @@ class Workout
             $workoutStmt->execute();
             $workoutId = $this->db->insert_id;
 
-            $exerciseSql = '
-                INSERT INTO workout_exercises
-                    (workout_id, exercise_id, sets, reps, weight_kg)
-                VALUES (?, ?, ?, ?, ?)
-            ';
-
-            $exerciseStmt = $this->db->prepare($exerciseSql);
-
-            $exerciseStmt->bind_param(
-                'iiiid',
-                $workoutId,
-                $exerciseId,
-                $sets,
-                $reps,
-                $weightKg
-            );
-
-            $exerciseStmt->execute();
+            $this->insertExercises($workoutId, $exercises);
 
             $this->db->commit();
 
@@ -190,10 +170,7 @@ class Workout
         $date,
         $durationMinutes,
         $notes,
-        $exerciseId,
-        $sets,
-        $reps,
-        $weightKg
+        $exercises
     ) {
         $this->db->begin_transaction();
 
@@ -214,7 +191,7 @@ class Workout
                 return false;
             }
 
-            $this->ensureExerciseExists($exerciseId);
+            $this->ensureExercisesExist($exercises);
 
             $workoutSql = '
                 UPDATE workouts
@@ -251,24 +228,7 @@ class Workout
             $deleteExerciseStmt->bind_param('i', $workoutId);
             $deleteExerciseStmt->execute();
 
-            $exerciseSql = '
-                INSERT INTO workout_exercises
-                    (workout_id, exercise_id, sets, reps, weight_kg)
-                VALUES (?, ?, ?, ?, ?)
-            ';
-
-            $exerciseStmt = $this->db->prepare($exerciseSql);
-
-            $exerciseStmt->bind_param(
-                'iiiid',
-                $workoutId,
-                $exerciseId,
-                $sets,
-                $reps,
-                $weightKg
-            );
-
-            $exerciseStmt->execute();
+            $this->insertExercises($workoutId, $exercises);
 
             $this->db->commit();
 
@@ -292,6 +252,62 @@ class Workout
         $stmt->execute();
 
         return $stmt->affected_rows > 0;
+    }
+
+    private function ensureExercisesExist($exercises)
+    {
+        if (!is_array($exercises) || count($exercises) === 0) {
+            throw new InvalidArgumentException(
+                'Mindestens eine Übung ist erforderlich.'
+            );
+        }
+
+        foreach ($exercises as $exercise) {
+            if (
+                !is_array($exercise) ||
+                !isset($exercise['exercise_id'])
+            ) {
+                throw new InvalidArgumentException(
+                    'Die Übungsdaten sind ungültig.'
+                );
+            }
+
+            $this->ensureExerciseExists($exercise['exercise_id']);
+        }
+    }
+
+    private function insertExercises($workoutId, $exercises)
+    {
+        $sql = '
+            INSERT INTO workout_exercises
+                (workout_id, exercise_id, sets, reps, weight_kg)
+            VALUES (?, ?, ?, ?, ?)
+        ';
+
+        $stmt = $this->db->prepare($sql);
+
+        $exerciseId = 0;
+        $sets = 0;
+        $reps = 0;
+        $weightKg = 0;
+
+        $stmt->bind_param(
+            'iiiid',
+            $workoutId,
+            $exerciseId,
+            $sets,
+            $reps,
+            $weightKg
+        );
+
+        foreach ($exercises as $exercise) {
+            $exerciseId = $exercise['exercise_id'];
+            $sets = $exercise['sets'];
+            $reps = $exercise['reps'];
+            $weightKg = $exercise['weight_kg'];
+
+            $stmt->execute();
+        }
     }
 
     private function ensureExerciseExists($exerciseId)
