@@ -138,9 +138,20 @@ if (!isset($_SESSION['user_id'])) {
             ></textarea>
         </div>
 
-        <button class="btn" id="save-workout">
-            Workout speichern
-        </button>
+        <div class="workout-form-actions">
+            <button type="button" class="btn" id="save-workout">
+                Workout speichern
+            </button>
+
+            <button
+                type="button"
+                class="workout-cancel-button"
+                id="cancel-workout-edit"
+                hidden
+            >
+                Abbrechen
+            </button>
+        </div>
 
         <p class="section-label">Meine Workouts</p>
 

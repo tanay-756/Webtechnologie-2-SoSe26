@@ -132,6 +132,8 @@ class Workout
         $this->db->begin_transaction();
 
         try {
+            $this->ensureExerciseExists($exerciseId);
+
             $workoutSql = '
                 INSERT INTO workouts
                     (user_id, title, date, duration_minutes, notes)
@@ -178,6 +180,137 @@ class Workout
             $this->db->rollback();
 
             throw $error;
+        }
+    }
+
+    public function update(
+        $workoutId,
+        $userId,
+        $title,
+        $date,
+        $durationMinutes,
+        $notes,
+        $exerciseId,
+        $sets,
+        $reps,
+        $weightKg
+    ) {
+        $this->db->begin_transaction();
+
+        try {
+            $ownerSql = '
+                SELECT id
+                FROM workouts
+                WHERE id = ? AND user_id = ?
+                FOR UPDATE
+            ';
+
+            $ownerStmt = $this->db->prepare($ownerSql);
+            $ownerStmt->bind_param('ii', $workoutId, $userId);
+            $ownerStmt->execute();
+
+            if ($ownerStmt->get_result()->num_rows === 0) {
+                $this->db->rollback();
+                return false;
+            }
+
+            $this->ensureExerciseExists($exerciseId);
+
+            $workoutSql = '
+                UPDATE workouts
+                SET
+                    title = ?,
+                    date = ?,
+                    duration_minutes = ?,
+                    notes = ?
+                WHERE id = ? AND user_id = ?
+            ';
+
+            $workoutStmt = $this->db->prepare($workoutSql);
+
+            $workoutStmt->bind_param(
+                'ssisii',
+                $title,
+                $date,
+                $durationMinutes,
+                $notes,
+                $workoutId,
+                $userId
+            );
+
+            $workoutStmt->execute();
+
+            $deleteExerciseSql = '
+                DELETE FROM workout_exercises
+                WHERE workout_id = ?
+            ';
+
+            $deleteExerciseStmt =
+                $this->db->prepare($deleteExerciseSql);
+
+            $deleteExerciseStmt->bind_param('i', $workoutId);
+            $deleteExerciseStmt->execute();
+
+            $exerciseSql = '
+                INSERT INTO workout_exercises
+                    (workout_id, exercise_id, sets, reps, weight_kg)
+                VALUES (?, ?, ?, ?, ?)
+            ';
+
+            $exerciseStmt = $this->db->prepare($exerciseSql);
+
+            $exerciseStmt->bind_param(
+                'iiiid',
+                $workoutId,
+                $exerciseId,
+                $sets,
+                $reps,
+                $weightKg
+            );
+
+            $exerciseStmt->execute();
+
+            $this->db->commit();
+
+            return true;
+        } catch (Throwable $error) {
+            $this->db->rollback();
+
+            throw $error;
+        }
+    }
+
+    public function delete($workoutId, $userId)
+    {
+        $sql = '
+            DELETE FROM workouts
+            WHERE id = ? AND user_id = ?
+        ';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param('ii', $workoutId, $userId);
+        $stmt->execute();
+
+        return $stmt->affected_rows > 0;
+    }
+
+    private function ensureExerciseExists($exerciseId)
+    {
+        $sql = '
+            SELECT id
+            FROM exercises
+            WHERE id = ?
+            FOR UPDATE
+        ';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param('i', $exerciseId);
+        $stmt->execute();
+
+        if ($stmt->get_result()->num_rows === 0) {
+            throw new InvalidArgumentException(
+                'Die ausgewählte Übung existiert nicht.'
+            );
         }
     }
 }
