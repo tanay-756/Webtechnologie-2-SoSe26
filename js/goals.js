@@ -1,10 +1,15 @@
 const goalsApiUrl =
     '/Webtechnologie-2-SoSe26/api/goals.php';
 
+let editingGoalId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     const saveButton = document.getElementById('save-goal');
+    const cancelButton =
+        document.getElementById('cancel-goal-edit');
 
     saveButton.addEventListener('click', saveGoal);
+    cancelButton.addEventListener('click', cancelGoalEdit);
 
     loadGoals();
 });
@@ -27,17 +32,7 @@ async function loadGoals() {
 }
 
 async function saveGoal() {
-    const descriptionInput =
-        document.getElementById('goal-description');
-    const targetInput =
-        document.getElementById('goal-target');
-    const currentInput =
-        document.getElementById('goal-current');
-    const unitInput =
-        document.getElementById('goal-unit');
-    const deadlineInput =
-        document.getElementById('goal-deadline');
-
+    const fields = getGoalFormFields();
     const error = document.getElementById('goal-error');
     const success = document.getElementById('goal-success');
 
@@ -45,11 +40,11 @@ async function saveGoal() {
     hideGoalMessage(success);
 
     const goalData = {
-        description: descriptionInput.value.trim(),
-        target_value: Number(targetInput.value) || 0,
-        current_value: Number(currentInput.value) || 0,
-        unit: unitInput.value.trim(),
-        deadline: deadlineInput.value
+        description: fields.description.value.trim(),
+        target_value: Number(fields.target.value) || 0,
+        current_value: Number(fields.current.value) || 0,
+        unit: fields.unit.value.trim(),
+        deadline: fields.deadline.value
     };
 
     if (
@@ -64,21 +59,23 @@ async function saveGoal() {
         return;
     }
 
+    const isEditing = editingGoalId !== null;
+
+    if (isEditing) {
+        goalData.id = editingGoalId;
+        goalData.status = fields.status.value;
+    }
+
     try {
         const data = await apiRequest(goalsApiUrl, {
-            method: 'POST',
+            method: isEditing ? 'PATCH' : 'POST',
             body: JSON.stringify(goalData)
         });
 
-        showGoalMessage(success, data.message);
-
-        descriptionInput.value = '';
-        targetInput.value = '';
-        currentInput.value = '0';
-        unitInput.value = '';
-        deadlineInput.value = '';
-
+        resetGoalForm();
         await loadGoals();
+
+        showGoalMessage(success, data.message);
     } catch (requestError) {
         showGoalMessage(error, requestError.message);
     }
@@ -172,6 +169,28 @@ function renderGoals(goals) {
             );
         });
 
+        const actions = document.createElement('div');
+        actions.className = 'goal-actions';
+
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'goal-action-button';
+        editButton.textContent = 'Bearbeiten';
+        editButton.addEventListener('click', () => {
+            startGoalEdit(goal);
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className =
+            'goal-action-button goal-delete-button';
+        deleteButton.textContent = 'Löschen';
+        deleteButton.addEventListener('click', () => {
+            deleteGoal(goal);
+        });
+
+        actions.append(editButton, deleteButton);
+
         item.append(
             title,
             progress,
@@ -182,11 +201,103 @@ function renderGoals(goals) {
             currentInput,
             statusLabel,
             statusSelect,
-            updateButton
+            updateButton,
+            actions
         );
 
         list.appendChild(item);
     });
+}
+
+function startGoalEdit(goal) {
+    const fields = getGoalFormFields();
+
+    editingGoalId = Number(goal.id);
+
+    fields.description.value = goal.description || '';
+    fields.target.value = goal.target_value ?? '';
+    fields.current.value = goal.current_value ?? '0';
+    fields.unit.value = goal.unit || '';
+    fields.deadline.value = goal.deadline || '';
+    fields.status.value = goal.status || 'aktiv';
+
+    document.getElementById('goal-status-field').hidden = false;
+    document.getElementById('save-goal').textContent =
+        'Änderungen speichern';
+    document.getElementById('cancel-goal-edit').hidden = false;
+
+    hideGoalMessage(document.getElementById('goal-error'));
+    hideGoalMessage(document.getElementById('goal-success'));
+
+    fields.description.focus();
+}
+
+function cancelGoalEdit() {
+    resetGoalForm();
+    hideGoalMessage(document.getElementById('goal-error'));
+    hideGoalMessage(document.getElementById('goal-success'));
+}
+
+async function deleteGoal(goal) {
+    const confirmed = confirm(
+        `Soll das Ziel "${goal.description}" wirklich gelöscht werden?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const error = document.getElementById('goal-error');
+    const success = document.getElementById('goal-success');
+
+    hideGoalMessage(error);
+    hideGoalMessage(success);
+
+    try {
+        const data = await apiRequest(goalsApiUrl, {
+            method: 'DELETE',
+            body: JSON.stringify({ id: Number(goal.id) })
+        });
+
+        if (editingGoalId === Number(goal.id)) {
+            resetGoalForm();
+        }
+
+        await loadGoals();
+
+        showGoalMessage(success, data.message);
+    } catch (requestError) {
+        showGoalMessage(error, requestError.message);
+    }
+}
+
+function resetGoalForm() {
+    const fields = getGoalFormFields();
+
+    editingGoalId = null;
+
+    fields.description.value = '';
+    fields.target.value = '';
+    fields.current.value = '0';
+    fields.unit.value = '';
+    fields.deadline.value = '';
+    fields.status.value = 'aktiv';
+
+    document.getElementById('goal-status-field').hidden = true;
+    document.getElementById('save-goal').textContent =
+        'Ziel speichern';
+    document.getElementById('cancel-goal-edit').hidden = true;
+}
+
+function getGoalFormFields() {
+    return {
+        description: document.getElementById('goal-description'),
+        target: document.getElementById('goal-target'),
+        current: document.getElementById('goal-current'),
+        unit: document.getElementById('goal-unit'),
+        deadline: document.getElementById('goal-deadline'),
+        status: document.getElementById('goal-status')
+    };
 }
 
 async function updateGoal(goalId, currentValue, status) {

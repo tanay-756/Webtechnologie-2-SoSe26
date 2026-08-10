@@ -107,9 +107,34 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
 
-        <button class="btn" id="save-goal">
-            Ziel speichern
-        </button>
+        <div class="field" id="goal-status-field" hidden>
+            <label for="goal-status">Status</label>
+
+            <select id="goal-status">
+                <option value="aktiv">Aktiv</option>
+                <option value="erreicht">Erreicht</option>
+                <option value="abgebrochen">Abgebrochen</option>
+            </select>
+        </div>
+
+        <div class="goal-form-actions">
+            <button
+                type="button"
+                class="btn"
+                id="save-goal"
+            >
+                Ziel speichern
+            </button>
+
+            <button
+                type="button"
+                class="goal-cancel-button"
+                id="cancel-goal-edit"
+                hidden
+            >
+                Abbrechen
+            </button>
+        </div>
 
         <p class="section-label">Meine Ziele</p>
 
