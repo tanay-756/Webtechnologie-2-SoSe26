@@ -124,10 +124,12 @@ async function saveWorkout() {
 function renderWorkouts(workouts) {
     const list = document.getElementById('workout-list');
 
+    list.classList.add('entity-list');
     list.replaceChildren();
 
     if (workouts.length === 0) {
         const message = document.createElement('p');
+        message.className = 'entity-empty';
         message.textContent = 'Noch keine Workouts vorhanden.';
 
         list.appendChild(message);
@@ -135,44 +137,94 @@ function renderWorkouts(workouts) {
     }
 
     workouts.forEach((workout) => {
-        const item = document.createElement('div');
-        item.className = 'workout-item';
+        const item = document.createElement('article');
+        item.className = 'entity-card workout-item';
+
+        const header = document.createElement('div');
+        header.className = 'entity-card-header';
 
         const title = document.createElement('h3');
-        title.textContent =
-            `${workout.title} – ${formatWorkoutDate(workout.date)}`;
+        title.className = 'entity-card-title';
+        title.textContent = workout.title;
+
+        const date = document.createElement('span');
+        date.className = 'entity-meta-item';
+        date.textContent = `Datum: ${formatWorkoutDate(workout.date)}`;
+
+        header.append(title, date);
+
+        const meta = document.createElement('div');
+        meta.className = 'entity-meta';
 
         const duration = document.createElement('p');
+        duration.className = 'entity-meta-item';
         duration.textContent =
             `Dauer: ${workout.duration_minutes || 0} Minuten`;
 
-        item.append(title, duration);
+        meta.appendChild(duration);
+        item.append(header, meta);
 
         const exercises = Array.isArray(workout.exercises)
             ? workout.exercises
             : [];
 
-        exercises.forEach((exercise) => {
-            const exerciseText = document.createElement('p');
+        if (exercises.length > 0) {
+            const exerciseSection = document.createElement('div');
+            exerciseSection.className = 'workout-card-exercises';
 
-            exerciseText.textContent =
-                `${exercise.name}: ` +
-                `${exercise.sets || 0} Sätze, ` +
-                `${exercise.reps || 0} Wiederholungen, ` +
-                `${exercise.weight_kg || 0} kg`;
+            const exerciseHeading = document.createElement('h4');
+            exerciseHeading.className = 'workout-card-section-title';
+            exerciseHeading.textContent = 'Übungen';
 
-            item.appendChild(exerciseText);
-        });
+            exerciseSection.appendChild(exerciseHeading);
+
+            exercises.forEach((exercise) => {
+                const exerciseItem = document.createElement('div');
+                exerciseItem.className = 'workout-card-exercise';
+
+                const exerciseName = document.createElement('p');
+                exerciseName.className = 'workout-card-exercise-name';
+                exerciseName.textContent = exercise.name;
+
+                const metrics = document.createElement('div');
+                metrics.className = 'workout-exercise-metrics';
+
+                [
+                    `${exercise.sets || 0} Sätze`,
+                    `${exercise.reps || 0} Wiederholungen`,
+                    `${exercise.weight_kg || 0} kg`
+                ].forEach((value) => {
+                    const metric = document.createElement('span');
+                    metric.className = 'workout-metric-chip';
+                    metric.textContent = value;
+
+                    metrics.appendChild(metric);
+                });
+
+                exerciseItem.append(exerciseName, metrics);
+                exerciseSection.appendChild(exerciseItem);
+            });
+
+            item.appendChild(exerciseSection);
+        }
 
         if (workout.notes) {
-            const notes = document.createElement('p');
-            notes.textContent = `Notizen: ${workout.notes}`;
+            const notes = document.createElement('div');
+            notes.className = 'workout-notes';
 
+            const notesLabel = document.createElement('strong');
+            notesLabel.textContent = 'Notizen';
+
+            const notesText = document.createElement('p');
+            notesText.textContent = workout.notes;
+
+            notes.append(notesLabel, notesText);
             item.appendChild(notes);
         }
 
         const actions = document.createElement('div');
-        actions.className = 'workout-actions';
+        actions.className =
+            'entity-card-actions workout-actions';
 
         const editButton = document.createElement('button');
         editButton.type = 'button';
