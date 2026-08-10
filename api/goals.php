@@ -123,25 +123,7 @@ try {
             true
         );
 
-        $goalId = intval($data['id'] ?? 0);
-
-        $currentValue = floatval(
-            $data['current_value'] ?? 0
-        );
-
-        $status = trim($data['status'] ?? 'aktiv');
-
-        $allowedStatuses = [
-            'aktiv',
-            'erreicht',
-            'abgebrochen'
-        ];
-
-        if (
-            $goalId <= 0 ||
-            $currentValue < 0 ||
-            !in_array($status, $allowedStatuses, true)
-        ) {
+        if (!is_array($data)) {
             http_response_code(422);
 
             echo json_encode([
@@ -151,12 +133,163 @@ try {
             exit;
         }
 
-        $updated = $goal->updateProgress(
-            $goalId,
-            $_SESSION['user_id'],
-            $currentValue,
-            $status
+        $goalId = filter_var(
+            $data['id'] ?? null,
+            FILTER_VALIDATE_INT
         );
+
+        if ($goalId === false || $goalId <= 0) {
+            http_response_code(422);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Die Angaben sind ungültig.'
+            ]);
+            exit;
+        }
+
+        $allowedStatuses = [
+            'aktiv',
+            'erreicht',
+            'abgebrochen'
+        ];
+
+        $fullUpdateFields = [
+            'description',
+            'target_value',
+            'unit',
+            'deadline'
+        ];
+
+        $isFullUpdate = false;
+
+        foreach ($fullUpdateFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $isFullUpdate = true;
+                break;
+            }
+        }
+
+        if ($isFullUpdate) {
+            $descriptionValue = $data['description'] ?? null;
+            $targetValueRaw = $data['target_value'] ?? null;
+            $currentValueRaw = $data['current_value'] ?? null;
+            $unitValue = $data['unit'] ?? null;
+            $statusValue = $data['status'] ?? null;
+
+            if (
+                !is_string($descriptionValue) ||
+                !is_numeric($targetValueRaw) ||
+                !is_numeric($currentValueRaw) ||
+                !is_string($unitValue) ||
+                !is_string($statusValue)
+            ) {
+                http_response_code(422);
+
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Die Angaben sind ungültig.'
+                ]);
+                exit;
+            }
+
+            $description = trim($descriptionValue);
+            $targetValue = (float) $targetValueRaw;
+            $currentValue = (float) $currentValueRaw;
+            $unit = trim($unitValue);
+            $status = trim($statusValue);
+
+            if (
+                $description === '' ||
+                $targetValue <= 0 ||
+                $currentValue < 0 ||
+                $unit === '' ||
+                !in_array($status, $allowedStatuses, true)
+            ) {
+                http_response_code(422);
+
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Die Angaben sind ungültig.'
+                ]);
+                exit;
+            }
+
+            $deadlineValue = $data['deadline'] ?? null;
+
+            if ($deadlineValue === null) {
+                $deadline = null;
+            } elseif (!is_string($deadlineValue)) {
+                http_response_code(422);
+
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Das Zieldatum ist ungültig.'
+                ]);
+                exit;
+            } else {
+                $deadline = trim($deadlineValue);
+
+                if ($deadline === '') {
+                    $deadline = null;
+                } else {
+                    $dateObject = DateTime::createFromFormat(
+                        'Y-m-d',
+                        $deadline
+                    );
+
+                    if (
+                        !$dateObject ||
+                        $dateObject->format('Y-m-d') !== $deadline
+                    ) {
+                        http_response_code(422);
+
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Das Zieldatum ist ungültig.'
+                        ]);
+                        exit;
+                    }
+                }
+            }
+
+            $updated = $goal->update(
+                $goalId,
+                $_SESSION['user_id'],
+                $description,
+                $targetValue,
+                $currentValue,
+                $unit,
+                $deadline,
+                $status
+            );
+        } else {
+            $currentValue = floatval(
+                $data['current_value'] ?? 0
+            );
+
+            $status = trim($data['status'] ?? 'aktiv');
+
+            if (
+                $currentValue < 0 ||
+                !in_array($status, $allowedStatuses, true)
+            ) {
+                http_response_code(422);
+
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Die Angaben sind ungültig.'
+                ]);
+                exit;
+            }
+
+            $updated = $goal->updateProgress(
+                $goalId,
+                $_SESSION['user_id'],
+                $currentValue,
+                $status
+            );
+        }
 
         if (!$updated) {
             http_response_code(404);
@@ -168,9 +301,66 @@ try {
             exit;
         }
 
+        http_response_code(200);
+
         echo json_encode([
             'success' => true,
             'message' => 'Ziel wurde aktualisiert.'
+        ]);
+        exit;
+    }
+
+    if ($method === 'DELETE') {
+        $data = json_decode(
+            file_get_contents('php://input'),
+            true
+        );
+
+        if (!is_array($data)) {
+            http_response_code(422);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Die Ziel-ID ist ungültig.'
+            ]);
+            exit;
+        }
+
+        $goalId = filter_var(
+            $data['id'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        if ($goalId === false || $goalId <= 0) {
+            http_response_code(422);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Die Ziel-ID ist ungültig.'
+            ]);
+            exit;
+        }
+
+        $deleted = $goal->delete(
+            $goalId,
+            $_SESSION['user_id']
+        );
+
+        if (!$deleted) {
+            http_response_code(404);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Ziel wurde nicht gefunden.'
+            ]);
+            exit;
+        }
+
+        http_response_code(200);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Ziel wurde gelöscht.'
         ]);
         exit;
     }
