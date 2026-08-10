@@ -84,10 +84,12 @@ async function saveGoal() {
 function renderGoals(goals) {
     const list = document.getElementById('goal-list');
 
+    list.classList.add('entity-list');
     list.replaceChildren();
 
     if (goals.length === 0) {
         const message = document.createElement('p');
+        message.className = 'entity-empty';
         message.textContent = 'Noch keine Ziele vorhanden.';
 
         list.appendChild(message);
@@ -95,40 +97,127 @@ function renderGoals(goals) {
     }
 
     goals.forEach((goal) => {
-        const item = document.createElement('div');
-        item.className = 'goal-item';
+        const item = document.createElement('article');
+        item.className = 'entity-card goal-item';
+
+        const header = document.createElement('div');
+        header.className = 'entity-card-header';
 
         const title = document.createElement('h3');
+        title.className = 'entity-card-title';
         title.textContent = goal.description;
 
-        const progress = document.createElement('p');
-        progress.textContent =
-            `Fortschritt: ${goal.current_value} von ` +
+        const statusBadge = document.createElement('span');
+        const statusClasses = {
+            aktiv: 'entity-badge-active',
+            erreicht: 'entity-badge-success',
+            abgebrochen: 'entity-badge-cancelled'
+        };
+        const statusLabels = {
+            aktiv: 'Aktiv',
+            erreicht: 'Erreicht',
+            abgebrochen: 'Abgebrochen'
+        };
+
+        statusBadge.className =
+            'entity-badge ' +
+            (statusClasses[goal.status] || 'entity-badge-neutral');
+        statusBadge.textContent =
+            statusLabels[goal.status] || goal.status;
+
+        header.append(title, statusBadge);
+
+        const valueSummary = document.createElement('div');
+        valueSummary.className = 'goal-value-summary';
+
+        const currentValueBlock = document.createElement('div');
+        currentValueBlock.className = 'goal-value-block';
+
+        const currentValueLabel = document.createElement('span');
+        currentValueLabel.className = 'goal-value-label';
+        currentValueLabel.textContent = 'Aktueller Wert';
+
+        const currentValueText = document.createElement('strong');
+        currentValueText.className = 'goal-value-number';
+        currentValueText.textContent =
+            `${goal.current_value} ${goal.unit}`;
+
+        currentValueBlock.append(currentValueLabel, currentValueText);
+
+        const targetValueBlock = document.createElement('div');
+        targetValueBlock.className = 'goal-value-block';
+
+        const targetValueLabel = document.createElement('span');
+        targetValueLabel.className = 'goal-value-label';
+        targetValueLabel.textContent = 'Zielwert';
+
+        const targetValueText = document.createElement('strong');
+        targetValueText.className = 'goal-value-number';
+        targetValueText.textContent =
             `${goal.target_value} ${goal.unit}`;
 
-        const percentage = document.createElement('p');
+        targetValueBlock.append(targetValueLabel, targetValueText);
+        valueSummary.append(currentValueBlock, targetValueBlock);
 
-        const progressValue = Math.min(
-            100,
-            Math.round(
-                (Number(goal.current_value) /
-                    Number(goal.target_value)) * 100
-            )
-        );
+        const meta = document.createElement('div');
+        meta.className = 'entity-meta';
 
-        percentage.textContent =
-            `Erreicht: ${progressValue}%`;
-
-        const deadline = document.createElement('p');
-
+        const deadline = document.createElement('span');
+        deadline.className = 'entity-meta-item';
         deadline.textContent = goal.deadline
             ? `Zieldatum: ${formatGoalDate(goal.deadline)}`
             : 'Kein Zieldatum';
 
-        const statusText = document.createElement('p');
-        statusText.textContent = `Status: ${goal.status}`;
+        meta.appendChild(deadline);
 
-        const currentLabel = document.createElement('label');
+        const currentNumber = Number(goal.current_value);
+        const targetNumber = Number(goal.target_value);
+        const rawPercentage =
+            Number.isFinite(currentNumber) && targetNumber > 0
+                ? (currentNumber / targetNumber) * 100
+                : 0;
+        const visualPercentage = Math.min(
+            100,
+            Math.max(0, rawPercentage)
+        );
+        const progressValue = Math.round(visualPercentage);
+
+        const progressHeader = document.createElement('div');
+        progressHeader.className = 'goal-progress-header';
+
+        const progressLabel = document.createElement('span');
+        progressLabel.textContent = 'Fortschritt';
+
+        const percentage = document.createElement('span');
+        percentage.className = 'goal-progress-percentage';
+        percentage.textContent = `${progressValue}%`;
+
+        progressHeader.append(progressLabel, percentage);
+
+        const progressTrack = document.createElement('div');
+        progressTrack.className = 'progress-track';
+        progressTrack.setAttribute('role', 'progressbar');
+        progressTrack.setAttribute('aria-label', 'Zielfortschritt');
+        progressTrack.setAttribute('aria-valuemin', '0');
+        progressTrack.setAttribute('aria-valuemax', '100');
+        progressTrack.setAttribute(
+            'aria-valuenow',
+            String(progressValue)
+        );
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.style.width = `${visualPercentage}%`;
+
+        progressTrack.appendChild(progressBar);
+
+        const progressForm = document.createElement('div');
+        progressForm.className = 'goal-progress-form';
+
+        const currentField = document.createElement('label');
+        currentField.className = 'goal-progress-field';
+
+        const currentLabel = document.createElement('span');
         currentLabel.textContent = 'Aktueller Wert';
 
         const currentInput = document.createElement('input');
@@ -137,7 +226,12 @@ function renderGoals(goals) {
         currentInput.step = '0.1';
         currentInput.value = goal.current_value;
 
-        const statusLabel = document.createElement('label');
+        currentField.append(currentLabel, currentInput);
+
+        const statusField = document.createElement('label');
+        statusField.className = 'goal-progress-field';
+
+        const statusLabel = document.createElement('span');
         statusLabel.textContent = 'Status';
 
         const statusSelect = document.createElement('select');
@@ -156,9 +250,11 @@ function renderGoals(goals) {
             statusSelect.appendChild(option);
         });
 
+        statusField.append(statusLabel, statusSelect);
+
         const updateButton = document.createElement('button');
         updateButton.type = 'button';
-        updateButton.className = 'btn';
+        updateButton.className = 'btn goal-progress-button';
         updateButton.textContent = 'Fortschritt speichern';
 
         updateButton.addEventListener('click', () => {
@@ -169,8 +265,14 @@ function renderGoals(goals) {
             );
         });
 
+        progressForm.append(
+            currentField,
+            statusField,
+            updateButton
+        );
+
         const actions = document.createElement('div');
-        actions.className = 'goal-actions';
+        actions.className = 'entity-card-actions goal-actions';
 
         const editButton = document.createElement('button');
         editButton.type = 'button';
@@ -192,16 +294,12 @@ function renderGoals(goals) {
         actions.append(editButton, deleteButton);
 
         item.append(
-            title,
-            progress,
-            percentage,
-            deadline,
-            statusText,
-            currentLabel,
-            currentInput,
-            statusLabel,
-            statusSelect,
-            updateButton,
+            header,
+            valueSummary,
+            meta,
+            progressHeader,
+            progressTrack,
+            progressForm,
             actions
         );
 

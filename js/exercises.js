@@ -77,10 +77,12 @@ async function saveExercise() {
 function renderExercises(exercises) {
     const list = document.getElementById('exercise-list');
 
+    list.classList.add('entity-list');
     list.replaceChildren();
 
     if (exercises.length === 0) {
         const message = document.createElement('p');
+        message.className = 'entity-empty';
         message.textContent = 'Noch keine Übungen vorhanden.';
 
         list.appendChild(message);
@@ -88,22 +90,34 @@ function renderExercises(exercises) {
     }
 
     exercises.forEach((exercise) => {
-        const item = document.createElement('div');
-        item.className = 'exercise-item';
+        const item = document.createElement('article');
+        item.className = 'entity-card exercise-item';
+
+        const header = document.createElement('div');
+        header.className = 'entity-card-header';
 
         const title = document.createElement('h3');
+        title.className = 'entity-card-title';
         title.textContent = exercise.name;
 
-        const category = document.createElement('p');
-        category.textContent =
-            `Kategorie: ${exercise.category}`;
+        const category = document.createElement('span');
+        category.className = 'entity-badge entity-badge-category';
+        category.textContent = exercise.category;
+
+        header.append(title, category);
 
         const description = document.createElement('p');
+        description.className = 'exercise-card-description';
         description.textContent =
             exercise.description || 'Keine Beschreibung';
 
+        if (!exercise.description) {
+            description.classList.add('entity-muted');
+        }
+
         const actions = document.createElement('div');
-        actions.className = 'exercise-actions';
+        actions.className =
+            'entity-card-actions exercise-actions';
 
         const editButton = document.createElement('button');
         editButton.type = 'button';
@@ -123,7 +137,7 @@ function renderExercises(exercises) {
         });
 
         actions.append(editButton, deleteButton);
-        item.append(title, category, description, actions);
+        item.append(header, description, actions);
         list.appendChild(item);
     });
 }
