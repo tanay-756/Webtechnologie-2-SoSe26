@@ -5,7 +5,7 @@ Ein webbasierter Fitness Tracker, mit dem du deine Trainingseinheiten, Übungen 
 
 ## Was kann die App?
 
-- **Registrierung & Login** – eigenes Konto erstellen und sicher einloggen
+- **Registrierung & Login** – eigenes Konto erstellen und einloggen
 - **Profil** – Körperdaten wie Gewicht und Größe speichern, BMI wird automatisch berechnet
 - **Workouts** – Trainingseinheiten anlegen, bearbeiten und löschen; mehrere Übungen pro Workout möglich
 - **Übungen** – Übungskatalog durchsuchen und eigene Übungen hinzufügen (Kraft, Cardio, Stretching)
