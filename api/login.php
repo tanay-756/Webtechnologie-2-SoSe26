@@ -31,6 +31,9 @@ if ($result) {
     session_start();
     $_SESSION['user_id']  = $result['id'];
     $_SESSION['username'] = $result['username'];
+
+    session_write_close();
+
     echo json_encode(['success' => true, 'message' => 'Login erfolgreich']);
 } else {
     echo json_encode(['success' => false, 'message' => 'E-Mail oder Passwort falsch']);
