@@ -23,6 +23,29 @@ if (!$username || !$email || !$password) {
     echo json_encode(['success' => false, 'message' => 'Alle Felder ausfüllen']);
     exit;
 }
+if (strlen($username) > 50) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Der Benutzername darf höchstens 50 Zeichen lang sein.'
+    ]);
+    exit;
+}
+
+if (strlen($email) > 100) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Die E-Mail-Adresse ist zu lang.'
+    ]);
+    exit;
+}
+
+if (strlen($password) < 8) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Das Passwort muss mindestens 8 Zeichen lang sein.'
+    ]);
+    exit;
+}
 
 // E-Mail validieren
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {

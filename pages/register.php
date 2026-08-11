@@ -33,17 +33,17 @@
     <!-- Formular -->
     <div class="field">
       <label for="username">Benutzername</label>
-      <input type="text" id="username" placeholder="max_mustermann" />
+      <input type="text" id="username" maxlength="50" placeholder="max_mustermann" />
     </div>
 
     <div class="field">
       <label for="email">E-Mail</label>
-      <input type="email" id="email" placeholder="name@beispiel.de" />
+      <input type="email" id="email" maxlength="100" placeholder="name@beispiel.de" />
     </div>
 
     <div class="field">
       <label for="password">Passwort</label>
-      <input type="password" id="password" placeholder="••••••••" />
+      <input type="password" id="password" minlength="8" placeholder="••••••••" />
     </div>
 
     <!-- Registrieren-Button -->
