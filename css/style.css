@@ -232,7 +232,7 @@ textarea {
 .logo-text { font-size: 16px; font-weight: 500; }
 
 .forgot { text-align: right; margin-top: -0.75rem; margin-bottom: 1.25rem; }
-.forgot a { font-size: 13px; color: #1D9E75; text-decoration: none; }
+.forgot span { font-size: 13px; color: #1D9E75; text-decoration: none; }
 
 .divider {
     display: flex;

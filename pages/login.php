@@ -29,7 +29,7 @@
       <input type="password" id="password" placeholder="••••••••" />
     </div>
     <div class="forgot">
-      <a href="#">Passwort vergessen?</a>
+      <span>Passwort vergessen?</span>
     </div>
     <button class="btn" onclick="handleLogin()">Anmelden</button>
     <div class="divider"><span>oder</span></div>
