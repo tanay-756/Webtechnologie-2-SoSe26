@@ -129,7 +129,7 @@ class Workout
         $this->db->begin_transaction();
 
         try {
-            $this->ensureExercisesExist($exercises);
+            $this->ensureExercisesExist($exercises, $userId);
 
             $workoutSql = '
                 INSERT INTO workouts
@@ -191,7 +191,7 @@ class Workout
                 return false;
             }
 
-            $this->ensureExercisesExist($exercises);
+            $this->ensureExercisesExist($exercises, $userId);
 
             $workoutSql = '
                 UPDATE workouts
@@ -254,7 +254,7 @@ class Workout
         return $stmt->affected_rows > 0;
     }
 
-    private function ensureExercisesExist($exercises)
+    private function ensureExercisesExist($exercises, $userId)
     {
         if (!is_array($exercises) || count($exercises) === 0) {
             throw new InvalidArgumentException(
@@ -272,7 +272,7 @@ class Workout
                 );
             }
 
-            $this->ensureExerciseExists($exercise['exercise_id']);
+            $this->ensureExerciseExists($exercise['exercise_id'],$userId);
         }
     }
 
@@ -310,17 +310,17 @@ class Workout
         }
     }
 
-    private function ensureExerciseExists($exerciseId)
+    private function ensureExerciseExists($exerciseId, $userId)
     {
         $sql = '
             SELECT id
             FROM exercises
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
             FOR UPDATE
         ';
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $exerciseId);
+        $stmt->bind_param('ii', $exerciseId, $userId);
         $stmt->execute();
 
         if ($stmt->get_result()->num_rows === 0) {

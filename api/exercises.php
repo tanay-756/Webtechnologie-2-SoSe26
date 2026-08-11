@@ -95,7 +95,7 @@ try {
     if ($method === 'GET') {
         echo json_encode([
             'success' => true,
-            'exercises' => $exercise->getAll()
+            'exercises' => $exercise->getAll($_SESSION['user_id'])
         ]);
         exit;
     }
@@ -105,6 +105,7 @@ try {
         $exerciseData = normalizeExerciseInput($data);
 
         $id = $exercise->create(
+            $_SESSION['user_id'],
             $exerciseData['name'],
             $exerciseData['category'],
             $exerciseData['description']
@@ -127,6 +128,7 @@ try {
 
         $updated = $exercise->update(
             $exerciseId,
+            $_SESSION['user_id'],
             $exerciseData['name'],
             $exerciseData['category'],
             $exerciseData['description']
@@ -154,7 +156,10 @@ try {
     if ($method === 'DELETE') {
         $data = json_decode(file_get_contents('php://input'), true);
         $exerciseId = normalizeExerciseId($data);
-        $deleteResult = $exercise->delete($exerciseId);
+        $deleteResult = $exercise->delete(
+            $exerciseId,
+             $_SESSION['user_id']
+        );
 
         if ($deleteResult === Exercise::DELETE_NOT_FOUND) {
             http_response_code(404);

@@ -27,9 +27,12 @@ CREATE TABLE workouts (
 
 CREATE TABLE exercises (
     id          INT UNSIGNED   AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(100)   NOT NULL UNIQUE,
+    user_id     INT UNSIGNED   NOT NULL,
+    name        VARCHAR(100)   NOT NULL,
     category    ENUM('Kraft', 'Cardio', 'Stretching') NOT NULL,
-    description TEXT           DEFAULT NULL
+    description TEXT           DEFAULT NULL,
+    UNIQUE KEY unique_user_exercise_name (user_id, name),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE workout_exercises (

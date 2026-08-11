@@ -15,125 +15,153 @@ class Exercise
         $this->db = getDB();
     }
 
-    public function getAll()
-    {
-        $sql = 'SELECT id, name, category, description
-                FROM exercises
-                ORDER BY name ASC';
+   public function getAll($userId)
+{
+    $sql = 'SELECT id, name, category, description
+            FROM exercises
+            WHERE user_id = ?
+            ORDER BY name ASC';
 
-        $result = $this->db->query($sql);
+    $stmt = $this->db->prepare($sql);
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
 
-        return $result->fetch_all(MYSQLI_ASSOC);
-    }
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
 
-    public function create($name, $category, $description)
-    {
-        $sql = 'INSERT INTO exercises (name, category, description)
-                VALUES (?, ?, ?)';
+  public function create($userId, $name, $category, $description)
+{
+    $sql = 'INSERT INTO exercises
+                (user_id, name, category, description)
+            VALUES (?, ?, ?, ?)';
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('sss', $name, $category, $description);
-        $stmt->execute();
+    $stmt = $this->db->prepare($sql);
+    $stmt->bind_param(
+        'isss',
+        $userId,
+        $name,
+        $category,
+        $description
+    );
+    $stmt->execute();
 
-        return $this->db->insert_id;
-    }
+    return $this->db->insert_id;
+}
 
-    public function update($exerciseId, $name, $category, $description)
-    {
-        $this->db->begin_transaction();
+    public function update(
+    $exerciseId,
+    $userId,
+    $name,
+    $category,
+    $description
+) {
+    $this->db->begin_transaction();
 
-        try {
-            $existsSql = 'SELECT id
-                          FROM exercises
-                          WHERE id = ?
-                          FOR UPDATE';
+    try {
+        $existsSql = 'SELECT id
+                      FROM exercises
+                      WHERE id = ? AND user_id = ?
+                      FOR UPDATE';
 
-            $existsStmt = $this->db->prepare($existsSql);
-            $existsStmt->bind_param('i', $exerciseId);
-            $existsStmt->execute();
+        $existsStmt = $this->db->prepare($existsSql);
+        $existsStmt->bind_param(
+            'ii',
+            $exerciseId,
+            $userId
+        );
+        $existsStmt->execute();
 
-            if ($existsStmt->get_result()->num_rows === 0) {
-                $this->db->rollback();
-                return false;
-            }
-
-            $updateSql = 'UPDATE exercises
-                          SET name = ?, category = ?, description = ?
-                          WHERE id = ?';
-
-            $updateStmt = $this->db->prepare($updateSql);
-            $updateStmt->bind_param(
-                'sssi',
-                $name,
-                $category,
-                $description,
-                $exerciseId
-            );
-            $updateStmt->execute();
-
-            $this->db->commit();
-
-            return true;
-        } catch (Throwable $error) {
+        if ($existsStmt->get_result()->num_rows === 0) {
             $this->db->rollback();
-
-            throw $error;
+            return false;
         }
+
+        $updateSql = 'UPDATE exercises
+                      SET name = ?, category = ?, description = ?
+                      WHERE id = ? AND user_id = ?';
+
+        $updateStmt = $this->db->prepare($updateSql);
+        $updateStmt->bind_param(
+            'sssii',
+            $name,
+            $category,
+            $description,
+            $exerciseId,
+            $userId
+        );
+        $updateStmt->execute();
+
+        $this->db->commit();
+
+        return true;
+    } catch (Throwable $error) {
+        $this->db->rollback();
+
+        throw $error;
     }
+}
 
-    public function delete($exerciseId)
-    {
-        $this->db->begin_transaction();
+    public function delete($exerciseId, $userId)
+{
+    $this->db->begin_transaction();
 
-        try {
-            $existsSql = 'SELECT id
-                          FROM exercises
-                          WHERE id = ?
-                          FOR UPDATE';
+    try {
+        $existsSql = 'SELECT id
+                      FROM exercises
+                      WHERE id = ? AND user_id = ?
+                      FOR UPDATE';
 
-            $existsStmt = $this->db->prepare($existsSql);
-            $existsStmt->bind_param('i', $exerciseId);
-            $existsStmt->execute();
+        $existsStmt = $this->db->prepare($existsSql);
+        $existsStmt->bind_param(
+            'ii',
+            $exerciseId,
+            $userId
+        );
+        $existsStmt->execute();
 
-            if ($existsStmt->get_result()->num_rows === 0) {
-                $this->db->rollback();
-                return self::DELETE_NOT_FOUND;
-            }
-
-            $usageSql = 'SELECT id
-                         FROM workout_exercises
-                         WHERE exercise_id = ?
-                         LIMIT 1
-                         FOR UPDATE';
-
-            $usageStmt = $this->db->prepare($usageSql);
-            $usageStmt->bind_param('i', $exerciseId);
-            $usageStmt->execute();
-
-            if ($usageStmt->get_result()->num_rows > 0) {
-                $this->db->rollback();
-                return self::DELETE_IN_USE;
-            }
-
-            $deleteSql = 'DELETE FROM exercises
-                          WHERE id = ?';
-
-            $deleteStmt = $this->db->prepare($deleteSql);
-            $deleteStmt->bind_param('i', $exerciseId);
-            $deleteStmt->execute();
-
-            if ($deleteStmt->affected_rows === 0) {
-                $this->db->rollback();
-                return self::DELETE_NOT_FOUND;
-            }
-
-            $this->db->commit();
-
-            return self::DELETE_SUCCESS;
-        } catch (Throwable $error) {
+        if ($existsStmt->get_result()->num_rows === 0) {
             $this->db->rollback();
-
-            throw $error;
+            return self::DELETE_NOT_FOUND;
         }
+
+        $usageSql = 'SELECT id
+                     FROM workout_exercises
+                     WHERE exercise_id = ?
+                     LIMIT 1
+                     FOR UPDATE';
+
+        $usageStmt = $this->db->prepare($usageSql);
+        $usageStmt->bind_param('i', $exerciseId);
+        $usageStmt->execute();
+
+        if ($usageStmt->get_result()->num_rows > 0) {
+            $this->db->rollback();
+            return self::DELETE_IN_USE;
+        }
+
+        $deleteSql = 'DELETE FROM exercises
+                      WHERE id = ? AND user_id = ?';
+
+        $deleteStmt = $this->db->prepare($deleteSql);
+        $deleteStmt->bind_param(
+            'ii',
+            $exerciseId,
+            $userId
+        );
+        $deleteStmt->execute();
+
+        if ($deleteStmt->affected_rows === 0) {
+            $this->db->rollback();
+            return self::DELETE_NOT_FOUND;
+        }
+
+        $this->db->commit();
+
+        return self::DELETE_SUCCESS;
+    } catch (Throwable $error) {
+        $this->db->rollback();
+
+        throw $error;
     }
+}
 }
