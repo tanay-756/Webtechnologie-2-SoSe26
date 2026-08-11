@@ -22,8 +22,16 @@ $weight_kg = floatval($data['weight_kg'] ?? 0);
 $height_cm = floatval($data['height_cm'] ?? 0);
 
 // Werte prüfen
-if ($weight_kg <= 0 || $height_cm <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Ungültige Werte']);
+if (
+    $weight_kg < 20 ||
+    $weight_kg > 500 ||
+    $height_cm < 50 ||
+    $height_cm > 300
+) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Bitte gib realistische Werte für Gewicht und Größe ein.'
+    ]);
     exit;
 }
 

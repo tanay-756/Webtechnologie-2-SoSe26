@@ -46,13 +46,13 @@ $profile = $user->getProfile($_SESSION['user_id']);
     <div class="grid-two">
       <div class="field">
         <label>Gewicht (kg)</label>
-        <input type="number" id="weight" placeholder="z.B. 65"
+        <input type="number" id="weight" min="20" max="500" step="0.1" placeholder="z.B. 65"
           value="<?php echo $profile['weight_kg'] ?? ''; ?>"
           oninput="calcBMI()" />
       </div>
       <div class="field">
         <label>Größe (cm)</label>
-        <input type="number" id="height" placeholder="z.B. 170"
+        <input type="number" id="height" min="50" max="300" step="0.1" placeholder="z.B. 170"
           value="<?php echo $profile['height_cm'] ?? ''; ?>"
           oninput="calcBMI()" />
       </div>
