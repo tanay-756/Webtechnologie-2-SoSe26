@@ -29,6 +29,7 @@ $result = $user->login($email, $password);
 if ($result) {
     // Session starten
     session_start();
+    session_regenerate_id(true);
     $_SESSION['user_id']  = $result['id'];
     $_SESSION['username'] = $result['username'];
 
