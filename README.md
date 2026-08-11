@@ -2,6 +2,7 @@
 
 Ein webbasierter Fitness Tracker, mit dem du deine Trainingseinheiten, Übungen und Ziele verwalten kannst.
 
+
 ## Was kann die App?
 
 - **Registrierung & Login** – eigenes Konto erstellen und sicher einloggen
@@ -11,9 +12,11 @@ Ein webbasierter Fitness Tracker, mit dem du deine Trainingseinheiten, Übungen 
 - **Ziele** – persönliche Fitnessziele setzen und den Fortschritt verfolgen
 - **Dashboard** – Übersicht über Statistiken, letzte Workouts und aktive Ziele mit Diagrammen
 
+
 ## Technologien
 
 HTML, CSS, JavaScript, PHP, MySQL
+
 
 ## Team
 
