@@ -43,10 +43,27 @@ class User {
         return $stmt->get_result()->fetch_assoc();
     }
 
-    // Körperdaten aktualisieren
-    public function updateProfile($user_id, $weight_kg, $height_cm) {
-        $stmt = $this->db->prepare("UPDATE users SET weight_kg = ?, height_cm = ? WHERE id = ?");
-        $stmt->bind_param("ddi", $weight_kg, $height_cm, $user_id);
-        return $stmt->execute();
+    // Prüfen, ob Benutzername oder E-Mail bereits zu einem anderen Konto gehören
+    public function accountDataExists($user_id, $username, $email) {
+        $stmt = $this->db->prepare(
+            "SELECT id FROM users WHERE id != ? AND (username = ? OR email = ?) LIMIT 1"
+        );
+        $stmt->bind_param("iss", $user_id, $username, $email);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0;
+    }
+
+    // Account- und Körperdaten aktualisieren
+    public function updateProfile($user_id, $username, $email, $weight_kg, $height_cm) {
+        $stmt = $this->db->prepare(
+            "UPDATE users SET username = ?, email = ?, weight_kg = ?, height_cm = ? WHERE id = ?"
+        );
+        $stmt->bind_param("ssddi", $username, $email, $weight_kg, $height_cm, $user_id);
+
+        try {
+            return $stmt->execute();
+        } catch (mysqli_sql_exception $e) {
+            return false;
+        }
     }
 }

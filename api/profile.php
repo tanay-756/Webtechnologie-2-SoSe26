@@ -18,8 +18,34 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Eingaben lesen
 $data      = json_decode(file_get_contents('php://input'), true);
+$username  = trim($data['username'] ?? '');
+$email     = trim($data['email'] ?? '');
 $weight_kg = floatval($data['weight_kg'] ?? 0);
 $height_cm = floatval($data['height_cm'] ?? 0);
+
+// Accountdaten prüfen
+if (!$username || !$email) {
+    echo json_encode(['success' => false, 'message' => 'Bitte alle Felder ausfüllen.']);
+    exit;
+}
+
+if (strlen($username) > 50) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Der Benutzername darf höchstens 50 Zeichen lang sein.'
+    ]);
+    exit;
+}
+
+if (strlen($email) > 100) {
+    echo json_encode(['success' => false, 'message' => 'Die E-Mail-Adresse ist zu lang.']);
+    exit;
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(['success' => false, 'message' => 'Bitte eine gültige E-Mail-Adresse eingeben.']);
+    exit;
+}
 
 // Werte prüfen
 if (
@@ -35,12 +61,32 @@ if (
     exit;
 }
 
+// Benutzername und E-Mail müssen eindeutig bleiben
+$user = new User();
+if ($user->accountDataExists($_SESSION['user_id'], $username, $email)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Benutzername oder E-Mail-Adresse ist bereits vergeben.'
+    ]);
+    exit;
+}
+
 // Profil aktualisieren
-$user   = new User();
-$result = $user->updateProfile($_SESSION['user_id'], $weight_kg, $height_cm);
+$result = $user->updateProfile(
+    $_SESSION['user_id'],
+    $username,
+    $email,
+    $weight_kg,
+    $height_cm
+);
 
 if ($result) {
+    // Der neue Name soll direkt auch auf dem Dashboard erscheinen.
+    $_SESSION['username'] = $username;
     echo json_encode(['success' => true, 'message' => 'Profil gespeichert']);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Fehler beim Speichern']);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Profil konnte nicht gespeichert werden. Benutzername oder E-Mail-Adresse ist eventuell bereits vergeben.'
+    ]);
 }

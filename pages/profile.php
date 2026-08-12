@@ -23,7 +23,7 @@ $profile = $user->getProfile($_SESSION['user_id']);
 
     <?php include '../includes/nav.php'; ?>
 
-    <div class="avatar">
+    <div class="avatar" id="avatar">
       <?php echo strtoupper(substr($profile['username'], 0, 2)); ?>
     </div>
     <h1>Mein Profil</h1>
@@ -34,12 +34,14 @@ $profile = $user->getProfile($_SESSION['user_id']);
 
     <p class="section-label">Accountdaten</p>
     <div class="field">
-      <label>Benutzername</label>
-      <input type="text" value="<?php echo htmlspecialchars($profile['username']); ?>" disabled />
+      <label for="username">Benutzername</label>
+      <input type="text" id="username" maxlength="50" autocomplete="username" required
+        value="<?php echo htmlspecialchars($profile['username']); ?>" />
     </div>
     <div class="field">
-      <label>E-Mail</label>
-      <input type="email" value="<?php echo htmlspecialchars($profile['email']); ?>" disabled />
+      <label for="email">E-Mail</label>
+      <input type="email" id="email" maxlength="100" autocomplete="email" required
+        value="<?php echo htmlspecialchars($profile['email']); ?>" />
     </div>
 
     <p class="section-label">Körperdaten</p>
@@ -72,7 +74,7 @@ $profile = $user->getProfile($_SESSION['user_id']);
       </span>
     </div>
 
-    <button class="btn" onclick="saveProfile()">Speichern</button>
+    <button type="button" class="btn" onclick="saveProfile()">Speichern</button>
 
   </div>
 </div>

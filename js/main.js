@@ -59,14 +59,27 @@ async function handleRegister() {
 
 // Profil speichern
 async function saveProfile() {
+    const username = document.getElementById('username').value.trim();
+    const emailEl  = document.getElementById('email');
+    const email    = emailEl.value.trim();
     const weight  = document.getElementById('weight').value;
     const height  = document.getElementById('height').value;
     const error   = document.getElementById('error');
     const success = document.getElementById('success');
 
     // Pflichtfelder prüfen
-    if (!weight || !height) {
-        showError(error, 'Bitte Gewicht und Größe eingeben.');
+    if (!username || !email || !weight || !height) {
+        showError(error, 'Bitte alle Felder ausfüllen.');
+        return;
+    }
+
+    if (username.length > 50) {
+        showError(error, 'Der Benutzername darf höchstens 50 Zeichen lang sein.');
+        return;
+    }
+
+    if (!emailEl.checkValidity()) {
+        showError(error, 'Bitte eine gültige E-Mail-Adresse eingeben.');
         return;
     }
 
@@ -74,15 +87,18 @@ async function saveProfile() {
     const res  = await fetch('/Webtechnologie-2-SoSe26/api/profile.php', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ weight_kg: weight, height_cm: height })
+        body:    JSON.stringify({ username, email, weight_kg: weight, height_cm: height })
     });
 
     const data = await res.json();
 
     if (data.success) {
         showSuccess(success, 'Profil gespeichert!');
+        error.style.display = 'none';
+        document.getElementById('avatar').textContent = username.substring(0, 2).toUpperCase();
     } else {
         showError(error, data.message);
+        success.style.display = 'none';
     }
 }
 
